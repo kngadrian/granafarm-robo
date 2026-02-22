@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌿 GRANA FARM — Command Center
 
-## Getting Started
+**Centrul de comandă agricol pentru GRANA FARM SRL**
 
-First, run the development server:
+> Next.js 14 · TypeScript · Tailwind CSS · OpenAI GPT-4o
+
+---
+
+## Prezentare
+
+GRANA FARM Command Center este o aplicație web profesională pentru gestionarea activității agricole a **GRANA FARM SRL** (CUI 48892842, CAEN 0113 — Cultivarea legumelor și pepenilor, Caraș-Severin).
+
+### Funcționalități principale
+
+| Pagină | Descriere |
+|--------|-----------|
+| `/` | Dashboard cu știri, termene, date firmă și acțiuni rapide |
+| `/chat` | Chat AI cu 6 agenți specializați (ANAF, APIA, AFIR, etc.) |
+| `/stiri` | Știri agricole filtrate pe categorii |
+| `/furnizori` | Bază de date furnizori agricoli din România |
+| `/termene` | Calendar complet obligații fiscale și agricole 2025 |
+
+---
+
+## Instalare
 
 ```bash
+git clone https://github.com/kngadrian/granafarm-robo.git
+cd granafarm-robo
+npm install
+cp .env.local.example .env.local
+# Editați .env.local și adăugați cheia OpenAI
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variabile de mediu
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variabilă | Descriere | Obligatorie |
+|-----------|-----------|-------------|
+| `OPENAI_API_KEY` | Cheia API OpenAI pentru chat agents | ✅ Da |
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy pe Vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Metoda 1: Vercel CLI
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm i -g vercel
+vercel --prod
+```
 
-## Deploy on Vercel
+Setați variabila de mediu în Vercel Dashboard:
+- `OPENAI_API_KEY` = `sk-...`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Metoda 2: Import din GitHub
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Mergeți la [vercel.com/new](https://vercel.com/new)
+2. Importați repo-ul `kngadrian/granafarm-robo`
+3. Adăugați `OPENAI_API_KEY` în secțiunea **Environment Variables**
+4. Click **Deploy**
+
+---
+
+## Agenți AI disponibili
+
+| Agent | Specializare |
+|-------|-------------|
+| 🏛️ ANAF | Fiscalitate, TVA, declarații |
+| 🌾 APIA | Subvenții agricole, cerere unică plată |
+| 🇪🇺 AFIR | Fonduri europene, PNDR, PNRR |
+| 🌿 Min. Agriculturii | Reglementări, norme fitosanitare |
+| 🚚 Furnizori | Găsire furnizori produse agricole |
+| 📊 Contabilitate | Contabilitate microîntreprindere |
+
+---
+
+## Stack tehnic
+
+- **Framework:** Next.js 14 (App Router)
+- **Limbaj:** TypeScript
+- **Styling:** Tailwind CSS
+- **AI:** OpenAI GPT-4o
+- **Iconițe:** Lucide React
+- **Deploy:** Vercel
+
+---
+
+## Companie
+
+**GRANA FARM SRL**  
+CUI: 48892842  
+CAEN: 0113 — Cultivarea legumelor și pepenilor, rădăcinoaselor și tuberculilor  
+Județ: Caraș-Severin  
+Website: [granafarm.ro](https://granafarm.ro)
+
+---
+
+*Built with ❤️ for Romanian agriculture*
