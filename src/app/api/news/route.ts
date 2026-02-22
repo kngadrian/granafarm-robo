@@ -26,15 +26,24 @@ function parseRSS(xml: string, sourceName: string): Article[] {
       item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/)?.[1] ||
       item.match(/<description>([\s\S]*?)<\/description>/)?.[1] ||
       "";
-    const pubDate =
-      item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || new Date().toUTCString();
+    const rawPubDate =
+      item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || "";
+
+    // Normalize to ISO string; fall back to current time if parsing fails
+    let isoDate: string;
+    try {
+      const parsed = rawPubDate ? new Date(rawPubDate) : new Date();
+      isoDate = isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+    } catch {
+      isoDate = new Date().toISOString();
+    }
 
     if (title.trim()) {
       items.push({
         title: title.trim(),
         link: link.trim(),
         source: sourceName,
-        date: pubDate.trim(),
+        date: isoDate,
         description: description
           .replace(/<[^>]*>/g, "")
           .replace(/&amp;/g, "&")

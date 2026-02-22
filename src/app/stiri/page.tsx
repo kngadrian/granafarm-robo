@@ -40,11 +40,48 @@ const sourceBadgeColors: Record<string, string> = {
 
 const categories = ["Toate", "APIA", "ANAF", "AFIR", "Piețe", "Legislație", "General"];
 
+const DATE_FILTERS = [
+  { id: "toate", label: "🗓️ Toate" },
+  { id: "azi", label: "Azi" },
+  { id: "ieri", label: "Ieri" },
+  { id: "7zile", label: "Ultimele 7 zile" },
+  { id: "30zile", label: "Ultimele 30 zile" },
+];
+
+function filterByDate(articles: Article[], filter: string): Article[] {
+  if (filter === "toate") return articles;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const last7 = new Date(today);
+  last7.setDate(last7.getDate() - 7);
+  const last30 = new Date(today);
+  last30.setDate(last30.getDate() - 30);
+
+  return articles.filter((a) => {
+    const date = new Date(a.date);
+    switch (filter) {
+      case "azi":
+        return date >= today;
+      case "ieri":
+        return date >= yesterday && date < today;
+      case "7zile":
+        return date >= last7;
+      case "30zile":
+        return date >= last30;
+      default:
+        return true;
+    }
+  });
+}
+
 export default function StiriPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState("Toate");
+  const [activeDateFilter, setActiveDateFilter] = useState("toate");
 
   const fetchNews = useCallback(async () => {
     setLoading(true);
@@ -74,15 +111,24 @@ export default function StiriPage() {
     fetchNews();
   }, [fetchNews]);
 
+  // Apply both filters (AND logic)
+  const afterDateFilter = filterByDate(articles, activeDateFilter);
   const filtered =
     activeCategory === "Toate"
-      ? articles
-      : articles.filter((a) => a.category === activeCategory);
+      ? afterDateFilter
+      : afterDateFilter.filter((a) => a.category === activeCategory);
 
-  // Only show categories that have articles
+  // Only show categories that have articles (after date filter)
   const availableCategories = categories.filter(
-    (cat) => cat === "Toate" || articles.some((a) => a.category === cat)
+    (cat) =>
+      cat === "Toate" || afterDateFilter.some((a) => a.category === cat)
   );
+
+  // Count per date filter (for badges)
+  function countForDateFilter(filterId: string): number {
+    if (filterId === "toate") return articles.length;
+    return filterByDate(articles, filterId).length;
+  }
 
   return (
     <div className="p-8">
@@ -128,7 +174,36 @@ export default function StiriPage() {
       {/* Content */}
       {!loading && !error && (
         <>
-          {/* Filter tabs */}
+          {/* Date filter tabs */}
+          <div className="flex gap-2 mb-4 flex-wrap">
+            {DATE_FILTERS.map((df) => {
+              const count = countForDateFilter(df.id);
+              return (
+                <button
+                  key={df.id}
+                  onClick={() => setActiveDateFilter(df.id)}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 ${
+                    activeDateFilter === df.id
+                      ? "bg-green-700 text-white shadow-sm"
+                      : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  {df.label}
+                  <span
+                    className={`text-xs ${
+                      activeDateFilter === df.id
+                        ? "text-white/70"
+                        : "text-gray-400"
+                    }`}
+                  >
+                    ({count})
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Category filter tabs */}
           <div className="flex gap-2 mb-6 flex-wrap">
             {availableCategories.map((cat) => (
               <button
@@ -143,14 +218,32 @@ export default function StiriPage() {
                 {cat}
                 {cat !== "Toate" && (
                   <span className="ml-1.5 text-xs opacity-60">
-                    ({articles.filter((a) => a.category === cat).length})
+                    ({afterDateFilter.filter((a) => a.category === cat).length})
                   </span>
                 )}
               </button>
             ))}
           </div>
 
-          {filtered.length === 0 && (
+          {filtered.length === 0 && activeDateFilter !== "toate" && (
+            <div className="text-center py-16 text-gray-500">
+              <p className="text-base mb-2">
+                Nu s-au găsit știri pentru perioada selectată.
+              </p>
+              <p className="text-sm text-gray-400">
+                Încearcă{" "}
+                <button
+                  onClick={() => setActiveDateFilter("30zile")}
+                  className="text-primary font-semibold hover:underline"
+                >
+                  &apos;Ultimele 30 zile&apos;
+                </button>
+                .
+              </p>
+            </div>
+          )}
+
+          {filtered.length === 0 && activeDateFilter === "toate" && (
             <div className="text-center py-16 text-gray-400">
               <p>Nu există știri în această categorie.</p>
             </div>

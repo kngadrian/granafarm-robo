@@ -110,6 +110,20 @@ function formatDate(isoDate: string): string {
   });
 }
 
+// ─── Relative date helper ─────────────────────────────────────────
+function relativeDate(dateStr: string): string {
+  const diff = Math.floor(
+    (Date.now() - new Date(dateStr).getTime()) / 86400000
+  );
+  if (diff === 0) return "Azi";
+  if (diff === 1) return "Ieri";
+  if (diff <= 7) return `${diff} zile în urmă`;
+  return new Date(dateStr).toLocaleDateString("ro-RO", {
+    day: "numeric",
+    month: "short",
+  });
+}
+
 // ─── Market prices (hardcoded realistic MVP values) ───────────────
 const marketPrices = [
   { name: "Roșii", price: "4–6 lei/kg", icon: "🍅" },
@@ -137,6 +151,7 @@ export default function DashboardPage() {
   const [newsLoading, setNewsLoading] = useState(true);
   const [newsError, setNewsError] = useState<string | null>(null);
   const [newsMsg, setNewsMsg] = useState<string | null>(null);
+  const [newsIsRecent, setNewsIsRecent] = useState(true);
 
   // Weather
   const [weather, setWeather] = useState<WeatherData | null>(null);
@@ -165,7 +180,20 @@ export default function DashboardPage() {
         setNewsMsg(data.message || "Nu sunt știri disponibile momentan.");
         setArticles([]);
       } else {
-        setArticles(data.articles || []);
+        const allArticles: Article[] = data.articles || [];
+        const last7Days = new Date();
+        last7Days.setDate(last7Days.getDate() - 7);
+        const recentNews = allArticles.filter(
+          (a) => new Date(a.date) >= last7Days
+        );
+        if (recentNews.length > 0) {
+          setArticles(recentNews);
+          setNewsIsRecent(true);
+        } else {
+          // No articles in last 7 days — show all with badge
+          setArticles(allArticles);
+          setNewsIsRecent(false);
+        }
       }
     } catch {
       setNewsError("Nu s-au putut încărca știrile. Verifică conexiunea.");
@@ -336,6 +364,11 @@ export default function DashboardPage() {
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
               <TrendingUp size={20} className="text-primary" />
               Știri Agricole
+              {!newsLoading && articles.length > 0 && (
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${newsIsRecent ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                  {newsIsRecent ? "Ultimele 7 zile" : "Ultimele știri disponibile"}
+                </span>
+              )}
             </h2>
             <div className="flex items-center gap-2">
               <button
@@ -422,15 +455,11 @@ export default function DashboardPage() {
                         <span className="text-xs font-medium text-primary bg-green-50 px-2 py-0.5 rounded-full">
                           {item.source}
                         </span>
-                        <span className="text-xs text-gray-400">
-                          {item.date
-                            ? new Date(item.date).toLocaleDateString("ro-RO", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              })
-                            : ""}
-                        </span>
+                        {item.date && (
+                          <span className="text-xs text-gray-400">
+                            {relativeDate(item.date)}
+                          </span>
+                        )}
                       </div>
                     </div>
                     {item.link && (
